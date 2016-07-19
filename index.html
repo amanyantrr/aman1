@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <title>SW startup guide for Vayu GPS</title>
+  
+
+  <link rel="shortcut icon" href="./img/favicon.ico">
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="./css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="./css/highlight.css">
+
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "None";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = "/";
+  </script>
+  
+  <script src="./js/jquery-2.1.1.min.js"></script>
+  <script src="./js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="./js/highlight.pack.js"></script>
+  <script src="./js/theme.js"></script> 
+
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href="." class="icon icon-home"> SW startup guide for Vayu GPS</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        <ul class="current">
+          
+            <li>
+    <li class="toctree-l1 current">
+        <a class="current" href=".">Home</a>
+        
+            <ul>
+            
+                <li class="toctree-l3"><a href="#sw-startup-guide-for-vayu-gps">SW startup guide for Vayu GPS</a></li>
+                
+                    <li><a class="toctree-l4" href="#hardware-instructions">Hardware Instructions</a></li>
+                
+                    <li><a class="toctree-l4" href="#using-gps-module-with-debian-wheezy">Using GPS module with Debian Wheezy</a></li>
+                
+            
+            </ul>
+        
+    </li>
+<li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href=".">SW startup guide for Vayu GPS</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Home</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="sw-startup-guide-for-vayu-gps">SW startup guide for Vayu GPS</h1>
+<p>The Vayu-2GP-A, Vayu-3GHP-A, VAYU-3GCP-A and VAYU-P capes come with a GPS module. For a quick guide to starting with the Vayu-P cape's HW, see 
+<a href="http://www.yantrr.com/w/images/5/5e/Leaflet_for_Vayu_P_Cape.pdf">Leaflet for P cape.</a></p>
+<p>Below, we describe how to set up the GPS portion of the VAYU capes and the associated software.</p>
+<h2 id="hardware-instructions">Hardware Instructions</h2>
+<p>It has following interfaces available to user and for connecting to Beaglebone Black :</p>
+<ul>
+<li><strong>UART4 (/dev/ttyO4):</strong> It is used for reading the GPS NMEA messages from UART port of GPS module. It should be configured for use at baud rate 19200 raw after ttyO4 has been enabled in the kernel by applying device tree overlay for UART4.</li>
+<li><strong>GPIO50:</strong> It is used for resetting the GPS modules. It should be pulled high all the time.</li>
+<li><strong>GPIO27 :</strong> It is used as an input GPIO to receive 1 PPS output from the GPS module.</li>
+<li><strong>Switch S3 on Cape :</strong> It is push button Reset switch. To reset the module , push this button for atleast 1 sec or set the reset GPIO50 low for atleast 1 sec.</li>
+<li><strong>LED D5 on Cape:</strong>It is GPS fix LED of the GPS Module. When the Module has acquired GPS fix, this LED starts blinking at 1s OFF/1s ON . Also 1PPS output can be detected at GPIO27 after that.</li>
+<li><strong>LED D7 on Cape :</strong> It is 3.3V power LED for cape. It indicates that the GPS module is powered on.</li>
+</ul>
+<p>Connect the GPS antenna at SMA connector P6 and place the antenna under open sky for better operations and Boot up Beaglebone Black with cape mounted on it. Notice LED D7 powering up.</p>
+<p>Depending on the GPS module had a cold start, warm start or hot start , You should soon see LED D5 to start blinking, denoting that GPS Fix has been acquired.</p>
+<h2 id="using-gps-module-with-debian-wheezy">Using GPS module with Debian Wheezy</h2>
+<p>To read the NMEA messages from the GPS Module on Beaglebone Black :</p>
+<ul>
+<li>
+<p>Enable UART4 (/dev/ttyO4) in device tree kernel. </p>
+<pre><code># cd /lib/firmware
+
+# echo BB-UART4 &gt; /sys/devices/bone_capemgr.9/slots''
+</code></pre>
+</li>
+<li>
+<p>You can read the slots or use dmesg to see that UART4 has been enabled.</p>
+<pre><code># cat /sys/devices/bone_capemgr.9/slots''
+</code></pre>
+</li>
+</ul>
+<p>Output will be like this :</p>
+<pre><code>    ''0: 54:PF---''
+    ''1: 55:PF---''
+    ''2: 56:PF---''
+    ''3: 57:PF---''
+    ''4: ff:P-O-L Bone-LT-eMMC-2G,00A0,Texas Instrument,BB-BONE-EMMC-2G''
+    ''5: ff:P-O-L Bone-Black-HDMI,00A0,Texas Instrument,BB-BONELT-HDMI''
+    ''7: ff:P-O-L Override Board Name,00A0,Override Manuf,BB-UART4''
+</code></pre>
+<ul>
+<li>Install Minicom or use the following commands to see NMEA messages<pre><code># apt-get install minicom''
+
+# minicom –s'' (port settings /dev/ttyO4 19200 8N1 )
+</code></pre>
+</li>
+</ul>
+<p>or</p>
+<pre><code>    # stty –F /dev/ttyO4 19200 raw''
+    #cat /dev/ttyO4''
+</code></pre>
+<p>For more information and detailed guide on Time synchronization and GPS Location , please refer to the App note - 
+<a href="http://www.yantrr.com/wiki/Configuring_for_GPS_Location_and_Time_Synchronization">GPS Location and time synchronization</a></p>
+              
+            </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+	  
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+<div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+      
+    </span>
+</div>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 0.15.3
+Build Date UTC : 2016-07-19 15:24:16.846522
+-->
